@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/blablalf/bitcoin_wallet_tool#readme",
   "dependencies": {
+    "bip39": "^3.0.4",
     "commander": "^9.4.1",
     "hex-to-binary": "^1.0.1"
   }
