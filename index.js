@@ -15,7 +15,6 @@ program
   .description('A sample bitcoin wallet')
   .option('-g, --generate-seed', 'This option will generate a bitcoin wallet seed')
   .option('-i, --import-seed <VALUE>', 'This option will generate some info about the bitcoin wallet seed, please specify a mnemonic seed')
-  //.option('-b, --beta <VALUE>', 'Specify a VALUE', 'Foo');
 
 
 program.parse();
