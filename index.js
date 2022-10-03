@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const hexToBinary = require('hex-to-binary');
 const BIP39 = require('bip39');
 
+const line = "------------------------------------------------------------";
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // MENU PART
@@ -12,6 +14,7 @@ const BIP39 = require('bip39');
 program
   .description('A sample bitcoin wallet')
   .option('-g, --generate-seed', 'This option will generate a bitcoin wallet seed')
+  .option('-i, --import-seed <VALUE>', 'This option will generate some info about the bitcoin wallet seed, please specify a mnemonic seed')
   //.option('-b, --beta <VALUE>', 'Specify a VALUE', 'Foo');
 
 
@@ -21,6 +24,7 @@ const options = program.opts();
 if (Object.keys(options).length == 0) console.log("You should put an option");
 else {
     if (options.generateSeed) generateSeed();
+    if (options.importSeed) displaySeedInformations(options.importSeed);
 }
 
 /////////////////////////////////////////////////
@@ -46,14 +50,14 @@ function seedFromRandomNumber(_err, buffer) {
 
     // ADDING THE FIRST FOUR BITS OF THE HASH TO OUR 128 BITS ENTROPY TO GET A NEW 132 BITS ENTROPY
     const entropyChecksummizedBase2 = randomNumberBase2 + randomNumberHashBase2.slice(0, 4);
-    // const randomizedEntropyBase16 = BigInt(randomizedEntropyBase2, 2).toString(16); // Not useful, show our 132 bits entropy in hex/base16
+    const entropyChecksummizedBase16 = convertBinaryStringToHexString(entropyChecksummizedBase2); // Not useful, show our 132 bits entropy in hex/base16 // BADLY PARSED
 
-    const line = "------------------------------------------------------------";
     console.log(line, "\nGenerated random number (base16) :", randomNumberBase16 , "\n"+line);
     console.log("Rnd number hash (SHA256, base16) :", randomNumberHashBase16 , "\n"+line);
     console.log("Rnd number hash (SHA256, base2) :", randomNumberHashBase2 , "\n"+line);
     console.log("1st four bits of the hash (base2) :", randomNumberHashBase2.slice(0, 4) , "\n"+line);
-    console.log("128 bits base2 entropy + sha256 hash 4 first bits = 132 bits entropy :", entropyChecksummizedBase2 , "\n"+line);
+    console.log("128 bits base2 entropy + sha256 hash 4 first bits = 132 bits entropy (base2):", entropyChecksummizedBase2 , "\n"+line);
+    console.log("132 bits entropy (base16):", entropyChecksummizedBase16 , "\n"+line);
     console.log("\n\nSeed from BIP39 dict :", getStringSeedFromEntropy(entropyChecksummizedBase2));
 }
 
@@ -71,4 +75,54 @@ function getStringSeedFromEntropy(bitsSeed) {
 
 function generateSha256(input) {
     return crypto.createHash("sha256").update(input).digest("hex");
+}
+
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+// BIP 39 SEED IMPORTATION PART
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+
+function displaySeedInformations(seed) {
+    const entropyChecksummedBase2 = getBase2EntropyFromSeed(seed);
+    const entropyChecksummedBase16 = convertBinaryStringToHexString(entropyChecksummedBase2);
+    const checksumBase2 = entropyChecksummedBase2.slice(entropyChecksummedBase2.length-4, entropyChecksummedBase2.length);
+    const initialEntropyBase2 = entropyChecksummedBase2.slice(0, entropyChecksummedBase2.length-4);
+    const initialEntropyBase16 = convertBinaryStringToHexString(initialEntropyBase2);
+    const entropyBuffer = Buffer.from(initialEntropyBase16, "hex");
+    const hashBase16 = crypto.createHash("sha256").update(entropyBuffer).digest("hex");
+    const hashBase2 = hexToBinary(hashBase16);
+
+    console.log("128 bits base2 entropy + sha256 hash 4 first bits = 132 bits entropy (base2) :", entropyChecksummedBase2 , "\n"+line);
+    console.log("132 bits entropy (base16) :", entropyChecksummedBase16 , "\n"+line);
+    console.log("1st four bits of the hash (base2) :", checksumBase2 , "\n"+line);
+    console.log("Generated random number (base2) :", initialEntropyBase2 , "\n"+line);
+    console.log("Generated random number (base16) :", initialEntropyBase16, "\n"+line);
+    console.log("Generated hash from initial entropy (base16) :", hashBase16, "\n"+line);
+    console.log("Generated hash from initial entropy (base2) :", hashBase2, "\n"+line);
+}
+
+function getBase2EntropyFromSeed(seed) {
+    const seedSplitted = seed.split(' ');
+    let entropyBase2 = "";
+
+    seedSplitted.forEach(word => {
+        let binaryIndex = (BIP39.wordlists.english.indexOf(word)).toString(2);
+        while (binaryIndex.length < 11) binaryIndex ="0"+binaryIndex;
+        entropyBase2 += (binaryIndex);
+    });
+
+    return entropyBase2;
+}
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+// UTILITIES PART
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+function convertBinaryStringToHexString(binaryStr) {
+    let hexStr = "";
+    for (let index = 0; index < binaryStr.length/4; index++) hexStr += parseInt(binaryStr.slice(index*4, index*4+4), 2).toString(16);
+    return hexStr;
 }
