@@ -12,9 +12,11 @@ const line = "------------------------------------------------------------";
 /////////////////////////////////////////////////
 
 program
-  .description('A sample bitcoin wallet')
-  .option('-g, --generate-seed', 'This option will generate a bitcoin wallet seed')
-  .option('-i, --import-seed <VALUE>', 'This option will generate some info about the bitcoin wallet seed, please specify a mnemonic seed')
+  .description("A sample bitcoin wallet")
+  .option("-g, --generate-seed', 'This option will generate a bitcoin wallet seed")
+  .option("-i, --import-seed <VALUE>', 'This option will generate some info about the bitcoin wallet seed, please specify a mnemonic seed")
+  .option("-s --seed <VALUE>")
+  .option("-p --password <VALUE>")
 
 
 program.parse();
@@ -24,6 +26,8 @@ if (Object.keys(options).length == 0) console.log("You should put an option");
 else {
     if (options.generateSeed) generateSeed();
     if (options.importSeed) displaySeedInformations(options.importSeed);
+    if (options.seed && options.password) generateBip32Seed(options.seed, options.password);
+    else if (options.seed) generateBip32Seed(options.seed);
 }
 
 /////////////////////////////////////////////////
@@ -76,7 +80,6 @@ function generateSha256(input) {
     return crypto.createHash("sha256").update(input).digest("hex");
 }
 
-
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // BIP 39 SEED IMPORTATION PART
@@ -113,6 +116,20 @@ function getBase2EntropyFromSeed(seed) {
     });
 
     return entropyBase2;
+}
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+// BIP 32 SEED GENERATION PART
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+function generateBip32Seed(mnemonicSeed) {
+    const entropyChecksummedBase2 = getBase2EntropyFromSeed(mnemonicSeed);
+    const entropyChecksummedBase16 = convertBinaryStringToHexString(entropyChecksummedBase2);
+    const entropyBuffer = Buffer.from(entropyChecksummedBase16, "hex");
+    const hmac = crypto.createHmac("sha512", entropyBuffer);
+    const signed = hmac.update("mnemonic").digest("hex");
+    console.log(signed) 
 }
 
 /////////////////////////////////////////////////
