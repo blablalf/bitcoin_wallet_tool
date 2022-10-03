@@ -1,0 +1,26 @@
+{
+  "name": "bitcoin_wallet_tool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blablalf/bitcoin_wallet_tool.git"
+  },
+  "keywords": [
+    "bitcoin"
+  ],
+  "author": "Alfred Gaillard",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/blablalf/bitcoin_wallet_tool/issues"
+  },
+  "homepage": "https://github.com/blablalf/bitcoin_wallet_tool#readme",
+  "dependencies": {
+    "commander": "^9.4.1",
+    "hex-to-binary": "^1.0.1"
+  }
+}
